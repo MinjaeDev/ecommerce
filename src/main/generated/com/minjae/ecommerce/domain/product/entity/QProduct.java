@@ -22,7 +22,12 @@ public class QProduct extends EntityPathBase<Product> {
 
     public static final QProduct product = new QProduct("product");
 
+    public final com.minjae.ecommerce.global.common.QBaseEntity _super = new com.minjae.ecommerce.global.common.QBaseEntity(this);
+
     public final QCategory category;
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
     public final StringPath description = createString("description");
 
@@ -41,6 +46,9 @@ public class QProduct extends EntityPathBase<Product> {
     public final QStock stock;
 
     public final StringPath thumbnailUrl = createString("thumbnailUrl");
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public QProduct(String variable) {
         this(Product.class, forVariable(variable), INITS);
