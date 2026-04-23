@@ -2,8 +2,7 @@ package com.minjae.ecommerce.api.product;
 
 
 import com.minjae.ecommerce.api.product.response.CategoryResponse;
-import com.minjae.ecommerce.domain.product.entity.Category;
-import com.minjae.ecommerce.domain.product.repository.CategoryRepository;
+import com.minjae.ecommerce.domain.product.service.CategoryService;
 import com.minjae.ecommerce.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,14 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryController {
 
-    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
 
     @Operation(summary = "전체 카테고리 조회 (트리 구조)")
     @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategories() {
-        List<Category> categories = categoryRepository.findAllByParentIsNull();
-        return ResponseEntity.ok(ApiResponse.ok(categories.stream()
-                .map(CategoryResponse::new)
-                .toList()));
+        return ResponseEntity.ok(ApiResponse.ok(categoryService.getCategories()));
     }
 }
