@@ -3,6 +3,7 @@ package com.minjae.ecommerce.api.member;
 import com.minjae.ecommerce.api.member.request.UpdateMemberRequest;
 import com.minjae.ecommerce.api.member.response.MemberResponse;
 import com.minjae.ecommerce.domain.member.service.MemberService;
+import com.minjae.ecommerce.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,22 +24,21 @@ public class MemberController {
 
     @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
-    public ResponseEntity<MemberResponse> getMyInfo(@AuthenticationPrincipal Long memberId) {
-        return ResponseEntity.ok(memberService.getMyInfo(memberId));
+    public ResponseEntity<ApiResponse<MemberResponse>> getMyInfo(@AuthenticationPrincipal Long memberId) {
+        return ResponseEntity.ok(ApiResponse.ok(memberService.getMyInfo(memberId)));
     }
 
     @Operation(summary = "내 정보 수정")
     @PutMapping("/me")
-    public ResponseEntity<MemberResponse> updateMyInfo(
-            @AuthenticationPrincipal Long memberId,
+    public ResponseEntity<ApiResponse<MemberResponse>> updateMyInfo(@AuthenticationPrincipal Long memberId,
             @Valid @RequestBody UpdateMemberRequest request) {
-        return ResponseEntity.ok(memberService.updateMyInfo(memberId, request));
+        return ResponseEntity.ok(ApiResponse.ok(memberService.updateMyInfo(memberId, request)));
     }
 
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/me")
-    public ResponseEntity<Void> withdraw(@AuthenticationPrincipal Long memberId) {
+    public ResponseEntity<ApiResponse<Void>> withdraw(@AuthenticationPrincipal Long memberId) {
         memberService.withdraw(memberId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }
