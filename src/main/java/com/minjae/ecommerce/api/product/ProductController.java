@@ -52,16 +52,16 @@ public class ProductController {
 
     @Operation(summary = "상품 수정", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductResponse> updateProduct(
+    public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody UpdateProductRequest request) {
-        return ResponseEntity.ok(productService.updateProduct(productId, request));
+        return ResponseEntity.ok(ApiResponse.ok(productService.updateProduct(productId, request)));
     }
 
     @Operation(summary = "상품 삭제 (비활성화)", security = @SecurityRequirement(name = "bearerAuth"))
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }
