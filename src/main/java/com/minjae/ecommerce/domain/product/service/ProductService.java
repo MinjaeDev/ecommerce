@@ -11,11 +11,17 @@ import com.minjae.ecommerce.domain.product.repository.ProductRepository;
 import com.minjae.ecommerce.domain.product.repository.StockRepository;
 import com.minjae.ecommerce.global.exception.BusinessException;
 import com.minjae.ecommerce.global.exception.ErrorCode;
+import com.minjae.ecommerce.infra.elasticsearch.ProductDocument;
+import com.minjae.ecommerce.infra.elasticsearch.ProductSearchRepository;
+import com.minjae.ecommerce.infra.elasticsearch.ProductSearchService;
+import com.minjae.ecommerce.infra.ollama.EmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +31,10 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final StockRepository stockRepository;
+
+    //임베딩
+    private final EmbeddingService embeddingService;
+    private final ProductSearchService productSearchService;
 
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
@@ -48,7 +58,23 @@ public class ProductService {
 
         stockRepository.save(stock);
 
-        return new ProductResponse(product);
+        //Embedding 생성 + ES 인덱싱
+        List<Float> embedding = embeddingService.generateProductEmbedding(request.getName(), request.getDescription());
+
+        ProductDocument document = ProductDocument.builder()
+                .productId(product.getProductId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .categoryName(category.getName())
+                .price(product.getPrice())
+                .status(product.getStatus().name())
+                .embeddingVector(embedding)
+                .build();
+
+        ProductDocument saveDoc = productSearchService.indexProduct(document);
+        product.updateEsDocId(saveDoc.getId());
+
+        return new ProductResponse(product, stock);
     }
 
     public ProductResponse getProduct(Long productId) {
