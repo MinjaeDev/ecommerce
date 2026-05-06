@@ -7,6 +7,7 @@ import com.minjae.ecommerce.api.member.response.MemberResponse;
 import com.minjae.ecommerce.api.member.response.TokenResponse;
 import com.minjae.ecommerce.domain.member.entity.Member;
 import com.minjae.ecommerce.domain.member.repository.MemberRepository;
+import com.minjae.ecommerce.domain.order.repository.OrderRepository;
 import com.minjae.ecommerce.global.exception.BusinessException;
 import com.minjae.ecommerce.global.exception.ErrorCode;
 import com.minjae.ecommerce.global.security.JwtTokenProvider;
@@ -52,32 +53,39 @@ public class MemberService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
+        //publicId를 JWT에 저장
         String accessToken = jwtTokenProvider.createAccessToken(
-                member.getMemberId(), member.getRole().name());
+                member.getPublicId(), member.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(
-                member.getMemberId(), member.getRole().name());
+                member.getPublicId(), member.getRole().name());
 
         return new TokenResponse(accessToken, refreshToken);
     }
 
-    public MemberResponse getMyInfo(Long memberId) {
-        Member member = memberRepository.findById(memberId)
+    public MemberResponse getMyInfo(String publicId) {
+        Member member = memberRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         return new MemberResponse(member);
     }
 
     @Transactional
-    public MemberResponse updateMyInfo(Long memberId, UpdateMemberRequest request) {
-        Member member = memberRepository.findById(memberId)
+    public MemberResponse updateMyInfo(String publicId, UpdateMemberRequest request) {
+        Member member = memberRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         member.updateProfile(request.getName(), request.getPhone());
         return new MemberResponse(member);
     }
 
     @Transactional
-    public void withdraw(Long memberId) {
-        Member member = memberRepository.findById(memberId)
+    public void withdraw(String publicId) {
+        Member member = memberRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         member.withdraw();
+    }
+
+    // 내부용 - publicId로 memberId 조회
+    public Member findByPublicId(String publicId) {
+        return memberRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

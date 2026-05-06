@@ -55,6 +55,9 @@ dependencies {
     compileOnly         'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // ── uuid v7 ───────────────────────────
+    implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
+
     // ── Test ─────────────────────────────────────────────────────────────
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

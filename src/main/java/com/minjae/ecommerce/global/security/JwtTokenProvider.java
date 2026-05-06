@@ -31,18 +31,18 @@ public class JwtTokenProvider {
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
-    public String createAccessToken(Long memberId, String role) {
-        return createToken(memberId, role, accessTokenExpiration);
+    public String createAccessToken(String publicId, String role) {
+        return createToken(publicId, role, accessTokenExpiration);
     }
 
-    public String createRefreshToken(Long memberId, String role) {
-        return createToken(memberId, role, refreshTokenExpiration);
+    public String createRefreshToken(String publicId, String role) {
+        return createToken(publicId, role, refreshTokenExpiration);
     }
 
-    private String createToken(Long memberId, String role, long expiration) {
+    private String createToken(String publicId, String role, long expiration) {
         Date now = new Date();
         return Jwts.builder()
-                .subject(String.valueOf(memberId))
+                .subject(publicId)
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiration))
@@ -62,8 +62,8 @@ public class JwtTokenProvider {
         return false;
     }
 
-    public Long getMemberId(String token) {
-        return Long.parseLong(getClaims(token).getSubject());
+    public String getPublicId(String token) {
+        return getClaims(token).getSubject();
     }
 
     public String getRole(String token) {

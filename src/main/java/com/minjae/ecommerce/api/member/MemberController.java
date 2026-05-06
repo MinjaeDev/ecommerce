@@ -24,21 +24,21 @@ public class MemberController {
 
     @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<MemberResponse>> getMyInfo(@AuthenticationPrincipal Long memberId) {
-        return ResponseEntity.ok(ApiResponse.ok(memberService.getMyInfo(memberId)));
+    public ResponseEntity<ApiResponse<MemberResponse>> getMyInfo(@AuthenticationPrincipal String publicId) {
+        return ResponseEntity.ok(ApiResponse.ok(memberService.getMyInfo(publicId)));
     }
 
     @Operation(summary = "내 정보 수정")
     @PutMapping("/me")
-    public ResponseEntity<ApiResponse<MemberResponse>> updateMyInfo(@AuthenticationPrincipal Long memberId,
+    public ResponseEntity<ApiResponse<MemberResponse>> updateMyInfo(@AuthenticationPrincipal String publicId,
             @Valid @RequestBody UpdateMemberRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(memberService.updateMyInfo(memberId, request)));
+        return ResponseEntity.ok(ApiResponse.ok(memberService.updateMyInfo(publicId, request)));
     }
 
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/me")
-    public ResponseEntity<ApiResponse<Void>> withdraw(@AuthenticationPrincipal Long memberId) {
-        memberService.withdraw(memberId);
+    public ResponseEntity<ApiResponse<Void>> withdraw(@AuthenticationPrincipal String publicId) {
+        memberService.withdraw(publicId);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }
