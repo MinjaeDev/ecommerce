@@ -12,8 +12,10 @@ import com.minjae.ecommerce.domain.payment.repository.PaymentCancelRepository;
 import com.minjae.ecommerce.domain.payment.repository.PaymentRepository;
 import com.minjae.ecommerce.global.exception.BusinessException;
 import com.minjae.ecommerce.global.exception.ErrorCode;
+import com.minjae.ecommerce.infra.kafka.event.PaymentCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,15 +32,23 @@ public class PaymentService {
     private final PaymentCancelRepository paymentCancelRepository;
     private final OrderRepository orderRepository;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     @Transactional
     public PaymentResponse requestPayment(String publicId, PaymentRequest request) {
         Orders orders = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
+        //주문 소유자 검증
+        if (!orders.getMember().getPublicId().equals(publicId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
         //이미 결제된 주문인지 확인
         paymentRepository.findByOrders_OrderId(orders.getOrderId())
                 .ifPresent(p -> {
-                    if (p.getStatus() == PaymentStatus.COMPLETED) throw new BusinessException(ErrorCode.PAYMENT_ALREADY_COMPLETED);
+                    if (p.getStatus() == PaymentStatus.COMPLETED)
+                        throw new BusinessException(ErrorCode.PAYMENT_ALREADY_COMPLETED);
                 });
 
         Payment payment = Payment.builder()
@@ -62,6 +72,16 @@ public class PaymentService {
 
         payment.complete(fakePaymentKey, fakePgResponse);
         orders.paid();
+
+        // spring 이벤트로 발행 (커밋 후 kafka 발행)
+        applicationEventPublisher.publishEvent(new PaymentCompletedEvent(
+                orders.getOrderId(),
+                payment.getPaymentId(),
+                fakePaymentKey,
+                payment.getAmount(),
+                request.getMethod().name(),
+                payment.getPaidAt()
+        ));
 
         log.info("결제 완료: orderId={}, paymentKey={}", orders.getOrderId(), fakePaymentKey);
 

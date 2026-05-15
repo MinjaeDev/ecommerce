@@ -44,6 +44,13 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private MemberStatus status;
 
+    @Column(name = "point", nullable = false)
+    private Integer point = 0;
+
+    public void addPoint(int amount) {
+        this.point += amount;
+    }
+
     @Builder
     public Member(String email, String password, String name, String phone) {
         this.publicId = UuidCreator.getTimeOrderedEpoch().toString(); // uuid 추가
